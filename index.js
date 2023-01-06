@@ -1,6 +1,5 @@
-
-const core = require('@actions/core');
-const axios = require('axios');
+const core = require("@actions/core");
+const axios = require("axios");
 
 const {
   getPullRequestsToReview,
@@ -9,10 +8,8 @@ const {
   createPr2UserArray,
   prettyMessage,
   stringToObject,
-  getTeamsMentions,
   formatSlackMessage,
-  formatTeamsMessage,
-} = require('./functions');
+} = require("./functions");
 
 const { GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_API_URL } = process.env;
 const AUTH_HEADER = {
@@ -26,7 +23,7 @@ const PULLS_ENDPOINT = `${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls`;
  */
 async function getPullRequests() {
   return axios({
-    method: 'GET',
+    method: "GET",
     url: PULLS_ENDPOINT,
     headers: AUTH_HEADER,
   });
@@ -40,7 +37,7 @@ async function getPullRequests() {
  */
 async function sendNotification(webhookUrl, messageData) {
   return axios({
-    method: 'POST',
+    method: "POST",
     url: webhookUrl,
     data: messageData,
   });
@@ -51,33 +48,32 @@ async function sendNotification(webhookUrl, messageData) {
  */
 async function main() {
   try {
-    const webhookUrl = core.getInput('webhook-url');
-    const provider = core.getInput('provider');
-    const channel = core.getInput('channel');
-    const github2providerString = core.getInput('github-provider-map');
-    const ignoreLabel = core.getInput('ignore-label');
-    core.info('Getting open pull requests...');
+    const webhookUrl = core.getInput("webhook-url");
+    const channel = core.getInput("channel");
+    const github2providerString = core.getInput("github-provider-map");
+    const waitingTime = core.getInput("waiting-time");
+    const ignoreLabel = core.getInput("ignore-label");
+    core.info("Getting open pull requests...");
     const pullRequests = await getPullRequests();
-    const totalReviewers = await getPullRequestsReviewersCount(pullRequests.data);
-    core.info(`There are ${pullRequests.data.length} open pull requests and ${totalReviewers} reviewers`);
+    const totalReviewers = getPullRequestsReviewersCount(pullRequests.data);
+    core.info(
+      `There are ${pullRequests.data.length} open pull requests and ${totalReviewers} reviewers`,
+    );
     const pullRequestsToReview = getPullRequestsToReview(pullRequests.data);
-    const pullRequestsWithoutLabel = getPullRequestsWithoutLabel(pullRequestsToReview, ignoreLabel);
-    core.info(`There are ${pullRequestsWithoutLabel.length} pull requests waiting for reviews`);
+    const pullRequestsWithoutLabel = getPullRequestsWithoutLabel(
+      pullRequestsToReview,
+      ignoreLabel,
+      waitingTime,
+    );
+    core.info(
+      `There are ${pullRequestsWithoutLabel.length} pull requests waiting for reviews`,
+    );
     if (pullRequestsWithoutLabel.length) {
       const pr2user = createPr2UserArray(pullRequestsWithoutLabel);
       const github2provider = stringToObject(github2providerString);
-      const messageText = prettyMessage(pr2user, github2provider, provider);
-      let messageObject;
-      switch (provider) {
-        case 'slack':
-          messageObject = formatSlackMessage(channel, messageText);
-          break;
-        case 'msteams': {
-          const msTeamsMentions = getTeamsMentions(github2provider, pr2user);
-          messageObject = formatTeamsMessage(messageText, msTeamsMentions);
-          break;
-        }
-      }
+      const messageText = prettyMessage(pr2user, github2provider, "slack");
+
+      const messageObject = formatSlackMessage(channel, messageText);
       await sendNotification(webhookUrl, messageObject);
       core.info(`Notification sent successfully!`);
     }

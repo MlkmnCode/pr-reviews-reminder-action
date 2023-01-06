@@ -4,19 +4,35 @@
  * @return {Array} Pull Requests to review
  */
 function getPullRequestsToReview(pullRequests) {
-  return pullRequests.filter((pr) => pr.requested_reviewers.length || pr.requested_teams.length);
+  return pullRequests.filter(
+    (pr) => pr.requested_reviewers.length || pr.requested_teams.length,
+  );
+}
+
+function getNumberOfWaitingDays(date_1) {
+  let date_2 = new Date();
+  let difference = date_1.getTime() - date_2.getTime();
+  return Math.ceil(difference / (1000 * 3600 * 24));
 }
 
 /**
  * Filter Pull Requests without a specific label
+ * Filter Pull Requests in Draft state
+ * Filter Pull Requests open in the same day
+ *
  * @param {Array} pullRequests Pull Requests to filter
  * @param {String} ignoreLabel Pull Request label to ignore
  * @return {Array} Pull Requests without a specific label
  */
-function getPullRequestsWithoutLabel(pullRequests, ignoreLabel) {
-  return pullRequests.filter((pr) =>
-    !((pr.labels || []).some((label) => label.name === ignoreLabel)),
-  );
+function getPullRequestsWithoutLabel(pullRequests, ignoreLabel, waitingTime) {
+  return pullRequests
+    .filter(
+      (pr) => !(pr.labels || []).some((label) => label.name === ignoreLabel),
+    )
+    .filter(
+      (pr) =>
+        !pr.draft && getNumberOfWaitingDays(pr.created_at) < waitingTime - 1,
+    );
 }
 
 /**
@@ -25,7 +41,10 @@ function getPullRequestsWithoutLabel(pullRequests, ignoreLabel) {
  * @return {Number} Reviewers number
  */
 function getPullRequestsReviewersCount(pullRequests) {
-  return pullRequests.reduce((total, pullRequest) => (total + pullRequest.requested_reviewers.length), 0);
+  return pullRequests.reduce(
+    (total, pullRequest) => total + pullRequest.requested_reviewers.length,
+    0,
+  );
 }
 
 /**
@@ -64,9 +83,9 @@ function stringToObject(str) {
   if (!str) {
     return map;
   }
-  const users = str.split(',');
+  const users = str.split(",");
   users.forEach((user) => {
-    const [github, provider] = user.split(':');
+    const [github, provider] = user.split(":");
     map[github] = provider;
   });
   return map;
@@ -80,20 +99,20 @@ function stringToObject(str) {
  * @return {String} Pretty message to print
  */
 function prettyMessage(pr2user, github2provider, provider) {
-  let message = '';
+  let message = "";
   for (const obj of pr2user) {
     switch (provider) {
-      case 'slack': {
-        const mention = github2provider[obj.login] ?
-          `<@${github2provider[obj.login]}>` :
-          `@${obj.login}`;
+      case "slack": {
+        const mention = github2provider[obj.login]
+          ? `<@${github2provider[obj.login]}>`
+          : `@${obj.login}`;
         message += `Hey ${mention}, the PR "${obj.title}" is waiting for your review: ${obj.url}\n`;
         break;
       }
-      case 'msteams': {
-        const mention = github2provider[obj.login] ?
-          `<at>${obj.login}</at>` :
-          `@${obj.login}`;
+      case "msteams": {
+        const mention = github2provider[obj.login]
+          ? `<at>${obj.login}</at>`
+          : `@${obj.login}`;
         message += `Hey ${mention}, the PR "${obj.title}" is waiting for your review: [${obj.url}](${obj.url})  \n`;
         break;
       }
@@ -133,7 +152,7 @@ function getTeamsMentions(github2provider, pr2user) {
 function formatSlackMessage(channel, message) {
   const messageData = {
     channel: channel,
-    username: 'Pull Request reviews reminder',
+    username: "Pull Request reviews reminder",
     text: message,
   };
   return messageData;
@@ -164,7 +183,7 @@ function formatTeamsMessage(message, mentionsArray) {
           $schema: `http://adaptivecards.io/schemas/adaptive-card.json`,
           version: `1.0`,
           msteams: {
-            width: 'Full',
+            width: "Full",
             entities: mentionsArray,
           },
         },

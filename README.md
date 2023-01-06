@@ -1,9 +1,11 @@
 # Pull Request reviews reminder action
+
 [![](https://github.com/davideviolante/pr-reviews-reminder-action/workflows/Node.js%20CI/badge.svg)](https://github.com/DavideViolante/pr-reviews-reminder-action/actions?query=workflow%3A%22Node.js+CI%22) [![Coverage Status](https://coveralls.io/repos/github/DavideViolante/pr-reviews-reminder-action/badge.svg?branch=master)](https://coveralls.io/github/DavideViolante/pr-reviews-reminder-action?branch=master) [![Maintainability](https://api.codeclimate.com/v1/badges/60f9b3a6b4177a0bfe77/maintainability)](https://codeclimate.com/github/DavideViolante/pr-reviews-reminder-action/maintainability) [![Donate](https://img.shields.io/badge/paypal-donate-179BD7.svg)](https://www.paypal.me/dviolante)
 
 Action to send Slack/Teams notifications when there are pull requests pending for reviews.
 
 ## Preview
+
 ![Preview](https://raw.githubusercontent.com/DavideViolante/pr-reviews-reminder-action/master/preview.png "Preview")
 
 ## Inputs
@@ -14,7 +16,7 @@ The webhook URL (required). More info [here (Slack)](https://api.slack.com/messa
 
 ### provider
 
-Chat provider, `slack` or `msteams` (required). Default `slack`.
+Chat provider, `slack`
 
 ### channel
 
@@ -46,19 +48,20 @@ jobs:
   pr-reviews-reminder:
     runs-on: ubuntu-latest
     steps:
-    - uses: davideviolante/pr-reviews-reminder-action@v2.2.3
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        webhook-url: '' # Required
-        provider: '' # Required (slack or msteams)
-        channel: '' # Optional, eg: #general
-        github-provider-map: '' # Optional, eg: DavideViolante:UEABCDEFG,foobar:UAABCDEFG
-        ignore-label: '' # Optional, eg: no-reminder
+      - uses: davideviolante/pr-reviews-reminder-action@v2.2.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          webhook-url: "" # Required (https://hooks.slack.com/services/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)
+          github-provider-map: "" # Optional, eg: DavideViolante:UEABCDEFG,foobar:UAABCDEFG
+          ignore-label: "" # Optional, eg: no-reminder
+          waiting-time: "" # Number of days to wait to notify the Reviewer. Default 1
 ```
 
 ## Bug or feedback?
+
 Please open an issue.
 
 ## Author
+
 - [Davide Violante](https://github.com/DavideViolante)
