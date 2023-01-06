@@ -52,7 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          webhook-url: "" # Required (https://hooks.slack.com/services/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)
+          webhook-url: "" # Required
           github-provider-map: "" # Optional, eg: DavideViolante:UEABCDEFG,foobar:UAABCDEFG
           ignore-label: "" # Optional, eg: no-reminder
           waiting-time: "" # Number of days to wait to notify the Reviewer. Default 1
